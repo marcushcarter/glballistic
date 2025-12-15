@@ -1,5 +1,4 @@
 #pragma once
-
 #include <glad/glad.h>
 
 namespace gl {
@@ -18,6 +17,30 @@ namespace gl {
 
     inline void Scissor(int x, int y, int w, int h) {
         glScissor(x, y, w, h);
+    }
+
+    inline void DepthFunc(GLenum func) {
+        glDepthFunc(func);
+    }
+
+    inline void DepthMask(bool write) {
+        glDepthMask(write ? GL_TRUE : GL_FALSE);
+    }
+
+    inline void BlendFunc(GLenum src, GLenum dst) {
+        glBlendFunc(src, dst);
+    }
+
+    inline void CullFace(GLenum face) {
+        glCullFace(face);
+    }
+
+    inline void FrontFace(GLenum winding) {
+        glFrontFace(winding);
+    }
+
+    inline void PolygonMode(GLenum mode) {
+        glPolygonMode(GL_FRONT_AND_BACK, mode);
     }
 
     inline void ColorMask(bool r, bool g, bool b, bool a = 1.0f) {

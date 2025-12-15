@@ -51,17 +51,50 @@ namespace gl {
             }
         }
 
+        static void bindTexture(GLuint unit, GLenum target, GLuint id) {
+            activeTexture(unit);
+
+            if (GLAD_GL_VERSION_4_5 || GLAD_GL_ARB_direct_state_access) {
+                if (boundTextureUnits[unit] != id) {
+                    glBindTextureUnit(unit, id);
+                    boundTextureUnits[unit] = id;
+                }
+            } else {
+                auto key = std::make_pair(target, unit);
+                if (boundTextures[key] != id) {
+                    glBindTexture(target, id);
+                    boundTextures[key] = id;
+                }
+            }
+        }
+
+        static void activeTexture(GLuint unit) {
+            if (activeTexUnit != unit) {
+                glActiveTexture(GL_TEXTURE0 + unit);
+                activeTexUnit = unit;
+            }
+        }
+
         static void reset() {
             boundBuffers.clear();
             boundBases.clear();
+            boundTextures.clear();
+            boundTextureUnits.clear();
+
             boundVertexArray = 0;
             boundShader = 0;
+            activeTexUnit = 0;
         }
     
     private:
         static inline std::unordered_map<GLenum, GLuint> boundBuffers;
         static inline std::unordered_map<std::pair<GLenum, GLuint>, GLuint, pair_hash> boundBases;
+
         static inline GLuint boundVertexArray = 0;
         static inline GLuint boundShader = 0;
+
+        static inline GLuint activeTexUnit = 0;
+        static inline std::unordered_map<std::pair<GLenum, GLuint>, GLuint, pair_hash> boundTextures;
+        static inline std::unordered_map<GLuint, GLuint> boundTextureUnits;
     };
 }

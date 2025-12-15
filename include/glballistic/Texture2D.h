@@ -1,4 +1,5 @@
 #pragma once
+#include <glballistic/State.h>
 #include <glad/glad.h>
 
 namespace gl {
@@ -23,14 +24,22 @@ namespace gl {
 
         void create(GLsizei width, GLsizei height, GLenum internalFormat, GLenum format, GLenum type, GLsizei levels = 1) {
             if (m_id) return;
-            glGenTextures(1, &m_id);
-            bind();
-            glTexStorage2D(GL_TEXTURE_2D, levels, internalFormat, width, height);
+
+            if (GLAD_GL_VERSION_4_5) {
+                glCreateTextures(GL_TEXTURE_2D, 1, &m_id);
+                glTextureStorage2D(m_id, levels, internalFormat, width, height);
+            } else {
+                glGenTextures(1, &m_id);
+                bind();
+                glTexStorage2D(GL_TEXTURE_2D, levels, internalFormat, width, height);
+            }
+
             m_width = width;
             m_height = height;
             m_internalFormat = internalFormat;
             m_format = format;
             m_type = type;
+            m_levels = levels;
         }
 
         void destroy() {
@@ -40,8 +49,7 @@ namespace gl {
         }
 
         void bind(GLuint unit = 0) const {
-            glActiveTexture(GL_TEXTURE0 + unit);
-            glBindTexture(GL_TEXTURE_2D, m_id);
+            State::bindTexture(unit, GL_TEXTURE_2D, m_id);
         }
 
         void bindImage(GLuint unit, GLenum access = GL_READ_WRITE, GLint level = 0) const {
@@ -49,13 +57,16 @@ namespace gl {
         }
 
         void unbind(GLuint unit = 0) const {
-            glActiveTexture(GL_TEXTURE0 + unit);
-            glBindTexture(GL_TEXTURE_2D, 0);
+            State::bindTexture(unit, GL_TEXTURE_2D, 0);
         }
 
         void setData(const void* data) const {
-            bind();
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_format, m_type, data);
+            if (GLAD_GL_VERSION_4_5) {
+                glTextureSubImage2D(m_id, 0, 0, 0, m_width, m_height, m_format, m_type, data);
+            } else {
+                bind();
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_format, m_type, data);
+            }
         }
 
         void getData(void* data) const {
@@ -64,16 +75,27 @@ namespace gl {
         }
 
         void generateMipmaps() const {
-            bind();
-            glGenerateMipmap(GL_TEXTURE_2D);
+            if (GLAD_GL_VERSION_4_5) {
+                glGenerateTextureMipmap(m_id);
+            } else {
+                bind();
+                glGenerateMipmap(GL_TEXTURE_2D);
+            }
         }
 
         void setParameters(GLenum minFilter, GLenum magFilter, GLenum wrapS, GLenum wrapT) const {
-            bind();
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+            if (GLAD_GL_VERSION_4_5) {
+                glTextureParameteri(m_id, GL_TEXTURE_MIN_FILTER, minFilter);
+                glTextureParameteri(m_id, GL_TEXTURE_MAG_FILTER, magFilter);
+                glTextureParameteri(m_id, GL_TEXTURE_WRAP_S, wrapS);
+                glTextureParameteri(m_id, GL_TEXTURE_WRAP_T, wrapT);
+            } else {
+                bind();
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+            }
         }
 
         GLuint id() const { return m_id; }
@@ -83,8 +105,8 @@ namespace gl {
     private:
         GLuint m_id{0};
         GLsizei m_width{0}, m_height{0};
-        GLenum m_internalFormat{0}, m_format{0}, m_type{0};
-
+        GLsizei m_levels{1};
+        GLenum m_internalFormat{0}, m_format{0}, m_type{0}; 
     };
 
 }
