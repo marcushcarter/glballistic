@@ -1,4 +1,5 @@
 #pragma once
+#include <glballistic/State.h>
 #include <glad/glad.h>
 #include <utility>
 
@@ -26,8 +27,9 @@ namespace gl {
             return *this;
         }
 
-        void create() {
+        void create(GLenum target) {
             if (m_id) return;
+            m_target = target;
             if (GLAD_GL_VERSION_4_5)
                 glCreateBuffers(1, &m_id);
             else
@@ -48,21 +50,15 @@ namespace gl {
         GLsizeiptr size() const { return m_size; }
         GLenum target() const { return m_target; }
 
-        void bind(GLenum target) {
-            m_target = target;
-            glBindBuffer(target, m_id);
-        }
-
-        static void unbind(GLenum target) {
-            glBindBuffer(target, 0);
-        }
+        void bind() const { State::bindBuffer(m_target, m_id); }
+        void unbind() const { State::bindBuffer(m_target, 0); }
 
         void data(GLsizeiptr size, const void* data, GLenum usage) {
             m_size = size;
             if (GLAD_GL_VERSION_4_5)
                 glNamedBufferData(m_id, size, data, usage);
             else {
-                bind(m_target);
+                bind();
                 glBufferData(m_target, size, data, usage);
             }
         }
@@ -71,7 +67,7 @@ namespace gl {
             if (GLAD_GL_VERSION_4_5)
                 glNamedBufferSubData(m_id, offset, size, data);
             else {
-                bind(m_target);
+                bind();
                 glBufferSubData(m_target, offset, size, data);
             }
         }
@@ -80,7 +76,7 @@ namespace gl {
             if (GLAD_GL_VERSION_4_5)
                 glNamedBufferStorage(m_id, size, data, flags);
             else {
-                bind(m_target);
+                bind();
                 glBufferStorage(m_target, size, data, flags);
             }
         }
@@ -89,7 +85,7 @@ namespace gl {
             if (GLAD_GL_VERSION_4_5)
                 glClearNamedBufferData(m_id, internalFormat, format, type, data);
             else {
-                bind(m_target);
+                bind();
                 glClearBufferData(m_target, internalFormat, format, type, data);
             }
         }
@@ -98,20 +94,22 @@ namespace gl {
             if (GLAD_GL_VERSION_4_5)
                 glClearNamedBufferSubData(m_id, internalFormat, offset, size, format, type, data);
             else {
-                bind(m_target);
+                bind();
                 glClearBufferSubData(m_target, internalFormat, offset, size, format, type, data);
             }
         }
 
         void* map(GLenum access) {
-            if (GLAD_GL_VERSION_4_5) return glMapNamedBuffer(m_id, access);
-            bind(m_target);
+            if (GLAD_GL_VERSION_4_5) 
+                return glMapNamedBuffer(m_id, access);
+            bind();
             return glMapBuffer(m_target, access);
         }
 
         void* mapRange(GLintptr offset, GLsizeiptr length, GLbitfield access) {
-            if (GLAD_GL_VERSION_4_5) return glMapNamedBufferRange(m_id, offset, length, access);
-            bind(m_target);
+            if (GLAD_GL_VERSION_4_5)
+                return glMapNamedBufferRange(m_id, offset, length, access);
+            bind();
             return glMapBufferRange(m_target, offset, length, access);
         }
 
@@ -119,17 +117,19 @@ namespace gl {
         T* mapTyped(GLenum access) { return static_cast<T*>(map(access)); }
 
         void flush(GLintptr offset, GLsizeiptr length) {
-            if (GLAD_GL_VERSION_4_5) glFlushMappedNamedBufferRange(m_id, offset, length);
+            if (GLAD_GL_VERSION_4_5)
+                glFlushMappedNamedBufferRange(m_id, offset, length);
             else {
-                bind(m_target);
+                bind();
                 glFlushMappedBufferRange(m_target, offset, length);
             }
         }
 
         void unmap() {
-            if (GLAD_GL_VERSION_4_5) glUnmapNamedBuffer(m_id);
+            if (GLAD_GL_VERSION_4_5)
+                glUnmapNamedBuffer(m_id);
             else {
-                bind(m_target);
+                bind();
                 glUnmapBuffer(m_target);
             }
         }
@@ -143,24 +143,28 @@ namespace gl {
         }
 
         void getParameter(GLenum pname, GLint* params) {
-            if (GLAD_GL_VERSION_4_5) glGetNamedBufferParameteriv(m_id, pname, params);
+            if (GLAD_GL_VERSION_4_5)
+                glGetNamedBufferParameteriv(m_id, pname, params);
             else {
-                bind(m_target);
+                bind();
                 glGetBufferParameteriv(m_target, pname, params);
             }
         }
 
         void getPointer(GLenum target, GLenum pname, void** params) {
-            if (GLAD_GL_VERSION_4_5) glGetNamedBufferPointerv(m_id, pname, params);
+            if (GLAD_GL_VERSION_4_5)
+                glGetNamedBufferPointerv(m_id, pname, params);
             else {
-                bind(m_target);
+                bind();
                 glGetBufferPointerv(m_target, pname, params);
             }
         }
         
         void copySubData(const Buffer& src, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size) {
-            if (GLAD_GL_VERSION_4_5) glCopyNamedBufferSubData(src.m_id, m_id, readOffset, writeOffset, size);
-            else glCopyBufferSubData(src.m_target, m_target, readOffset, writeOffset, size);
+            if (GLAD_GL_VERSION_4_5)
+                glCopyNamedBufferSubData(src.m_id, m_id, readOffset, writeOffset, size);
+            else
+                glCopyBufferSubData(src.m_target, m_target, readOffset, writeOffset, size);
         }
 
         void label(const char* name) {
