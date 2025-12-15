@@ -44,21 +44,21 @@ namespace gl {
         void bind() const { State::bindVertexArray(m_id); }
         void unbind() const { State::bindVertexArray(0); }
 
-        void vertexBuffer(GLuint bindingIndex, const Buffer& buffer, GLintptr offset = 0, GLsizei stride = 0) {
+        void vertexBuffer(GLuint bindingIndex, GLuint buffer, GLintptr offset = 0, GLsizei stride = 0) {
             if (GLAD_GL_VERSION_4_5)
-                glVertexArrayVertexBuffer(m_id, bindingIndex, buffer.get(), offset, stride);
+                glVertexArrayVertexBuffer(m_id, bindingIndex, buffer, offset, stride);
             else {
                 bind();
-                glBindVertexBuffer(bindingIndex, buffer.get(), offset, stride);
+                glBindVertexBuffer(bindingIndex, buffer, offset, stride);
             }
         }
 
-        void indexBuffer(const Buffer& buffer) {
+        void indexBuffer(GLuint buffer) {
             if (GLAD_GL_VERSION_4_5)
-                glVertexArrayElementBuffer(m_id, buffer.get());
+                glVertexArrayElementBuffer(m_id, buffer);
             else {
                 bind();
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.get());
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer);
             }
         }
 

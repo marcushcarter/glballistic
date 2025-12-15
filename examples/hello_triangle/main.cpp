@@ -34,15 +34,12 @@ int main() {
         -0.5f, -0.5f, 0.0f,
          0.5f, -0.5f, 0.0f
     };
-
     gl::VertexArray vao;
     vao.create();
-
     gl::Buffer vbo;
     vbo.create(GL_ARRAY_BUFFER);
     vbo.data(sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    vao.vertexBuffer(0, vbo, 0, 3 * sizeof(float));
+    vao.vertexBuffer(0, vbo.get(), 0, 3 * sizeof(float));
     vao.vertexAttrib(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     vao.enableAttrib(0);
 
@@ -53,8 +50,8 @@ int main() {
     shader.link();
 
     while (!glfwWindowShouldClose(window)) {
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        gl::ClearColor(0, 0, 0);
+        gl::Clear();
 
         shader.use();
         vao.drawArrays(GL_TRIANGLES, 0, 3);
