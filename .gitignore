@@ -1,0 +1,20 @@
+/build/
+/CMakeFiles/
+/CMakeCache.txt
+/*.cmake
+/*.user
+/*.sln
+/*.vcxproj*
+/Makefile
+/*.o
+/*.obj
+/*.exe
+/*.dll
+/*.pdb
+
+.vscode/
+.idea/
+
+# external/glad/src/glad.c
+
+external/glfw/build/
