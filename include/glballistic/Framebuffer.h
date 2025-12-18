@@ -54,10 +54,10 @@ namespace gl {
             m_colorAttachments.resize(std::max<size_t>(slot + 1, m_colorAttachments.size()));
             m_colorAttachments[slot] = &texture;
             if (GLAD_GL_VERSION_4_5)
-                glNamedFramebufferTexture(m_id, GL_COLOR_ATTACHMENT0 + slot, texture.id(), 0);
+                glNamedFramebufferTexture(m_id, GL_COLOR_ATTACHMENT0 + slot, texture.get(), 0);
             else {
                 bind();
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + slot, GL_TEXTURE_2D, texture.id(), 0);
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + slot, GL_TEXTURE_2D, texture.get(), 0);
             }
         }
 
@@ -71,10 +71,10 @@ namespace gl {
             m_depthTexture = &texture;
             m_depthRBO = nullptr;
             if (GLAD_GL_VERSION_4_5)
-                glNamedFramebufferTexture(m_id, GL_DEPTH_ATTACHMENT, texture.id(), 0);
+                glNamedFramebufferTexture(m_id, GL_DEPTH_ATTACHMENT, texture.get(), 0);
             else {
                 bind();
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture.id(), 0);
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture.get(), 0);
             }
         }
 
