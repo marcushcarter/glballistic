@@ -1,6 +1,6 @@
 #pragma once
-#include <glballistic/State.h>
 #include <glad/glad.h>
+#include <glballistic/State.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -39,8 +39,11 @@ namespace gl {
             m_uniformCache.clear();
         }
 
-        bool isValid() const { return m_id != 0 && glIsProgram(m_id); }
+        bool valid() const { return m_id != 0 && glIsProgram(m_id); }
         GLuint get() const { return m_id; }
+
+        void use() const { State::bindShader(m_id); }
+        void unuse() const { State::bindShader(0); }
 
         GLuint attachShader(GLenum type, const char* source) {
             GLuint shader = glCreateShader(type);
@@ -100,11 +103,16 @@ namespace gl {
             }
         }
 
-        void use() const { State::bindShader(m_id); }
-        void unuse() const { State::bindShader(0); }
-
         template<typename T>
         void setUniform(const char* name, const T& value) const;
+
+        template<> void setUniform<int>(const char* name, const int& value) const { glUniform1i(getUniformLocation(name), value); }
+        template<> void setUniform<float>(const char* name, const float& value) const { glUniform1f(getUniformLocation(name), value); }
+        template<> void setUniform<float[2]>(const char* name, const float (&value)[2]) const { glUniform2fv(getUniformLocation(name), 1, value); }
+        template<> void setUniform<float[3]>(const char* name, const float (&value)[3]) const { glUniform3fv(getUniformLocation(name), 1, value); }
+        template<> void setUniform<float[4]>(const char* name, const float (&value)[4]) const { glUniform4fv(getUniformLocation(name), 1, value); }
+        template<> void setUniform<float[3][3]>(const char* name, const float (&value)[3][3]) const { glUniformMatrix3fv(getUniformLocation(name), 1, GL_FALSE, &value[0][0]); }
+        template<> void setUniform<float[4][4]>(const char* name, const float (&value)[4][4]) const { glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, &value[0][0]); }
 
         void dispatchCompute(GLuint x, GLuint y, GLuint z, GLbitfield barriers = 0) const {
             use();
@@ -147,14 +155,6 @@ namespace gl {
             m_uniformCache[name] = loc;
             return loc;
         }
-
-        template<> void setUniform<int>(const char* name, const int& value) const { glUniform1i(getUniformLocation(name), value); }
-        template<> void setUniform<float>(const char* name, const float& value) const { glUniform1f(getUniformLocation(name), value); }
-        template<> void setUniform<float[2]>(const char* name, const float (&value)[2]) const { glUniform2fv(getUniformLocation(name), 1, value); }
-        template<> void setUniform<float[3]>(const char* name, const float (&value)[3]) const { glUniform3fv(getUniformLocation(name), 1, value); }
-        template<> void setUniform<float[4]>(const char* name, const float (&value)[4]) const { glUniform4fv(getUniformLocation(name), 1, value); }
-        template<> void setUniform<float[3][3]>(const char* name, const float (&value)[3][3]) const { glUniformMatrix3fv(getUniformLocation(name), 1, GL_FALSE, &value[0][0]); }
-        template<> void setUniform<float[4][4]>(const char* name, const float (&value)[4][4]) const { glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, &value[0][0]); }
     };
 
 }

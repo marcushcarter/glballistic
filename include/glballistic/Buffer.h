@@ -1,6 +1,6 @@
 #pragma once
-#include <glballistic/State.h>
 #include <glad/glad.h>
+#include <glballistic/State.h>
 #include <utility>
 
 namespace gl {
@@ -44,14 +44,14 @@ namespace gl {
             m_target = 0;
         }
 
-        bool isValid() const { return m_id != 0 && glIsBuffer(m_id); }
-        
+        bool valid() const { return m_id != 0 && glIsBuffer(m_id); }
         GLuint get() const { return m_id; }
-        GLsizeiptr size() const { return m_size; }
-        GLenum target() const { return m_target; }
 
         void bind() const { State::bindBuffer(m_target, m_id); }
         void unbind() const { State::bindBuffer(m_target, 0); }
+
+        void bindBase(GLenum target, GLuint index) const { glBindBufferBase(target, index, m_id); }
+        void bindRange(GLenum target, GLuint index, GLintptr offset, GLsizeiptr size) const { glBindBufferRange(target, index, m_id, offset, size); }
 
         void data(GLsizeiptr size, const void* data, GLenum usage) {
             m_size = size;
@@ -98,6 +98,13 @@ namespace gl {
                 glClearBufferSubData(m_target, internalFormat, offset, size, format, type, data);
             }
         }
+        
+        void copy(const Buffer& src, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size) {
+            if (GLAD_GL_VERSION_4_5)
+                glCopyNamedBufferSubData(src.m_id, m_id, readOffset, writeOffset, size);
+            else
+                glCopyBufferSubData(src.m_target, m_target, readOffset, writeOffset, size);
+        }
 
         void* map(GLenum access) {
             if (GLAD_GL_VERSION_4_5) 
@@ -134,43 +141,31 @@ namespace gl {
             }
         }
 
-        void bindBase(GLenum target, GLuint index) const {
-            glBindBufferBase(target, index, m_id);
-        }
+        // void getParameter(GLenum pname, GLint* params) {
+        //     if (GLAD_GL_VERSION_4_5)
+        //         glGetNamedBufferParameteriv(m_id, pname, params);
+        //     else {
+        //         bind();
+        //         glGetBufferParameteriv(m_target, pname, params);
+        //     }
+        // }
 
-        void bindRange(GLenum target, GLuint index, GLintptr offset, GLsizeiptr size) const {
-            glBindBufferRange(target, index, m_id, offset, size);
-        }
-
-        void getParameter(GLenum pname, GLint* params) {
-            if (GLAD_GL_VERSION_4_5)
-                glGetNamedBufferParameteriv(m_id, pname, params);
-            else {
-                bind();
-                glGetBufferParameteriv(m_target, pname, params);
-            }
-        }
-
-        void getPointer(GLenum target, GLenum pname, void** params) {
-            if (GLAD_GL_VERSION_4_5)
-                glGetNamedBufferPointerv(m_id, pname, params);
-            else {
-                bind();
-                glGetBufferPointerv(m_target, pname, params);
-            }
-        }
-        
-        void copySubData(const Buffer& src, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size) {
-            if (GLAD_GL_VERSION_4_5)
-                glCopyNamedBufferSubData(src.m_id, m_id, readOffset, writeOffset, size);
-            else
-                glCopyBufferSubData(src.m_target, m_target, readOffset, writeOffset, size);
-        }
+        // void getPointer(GLenum target, GLenum pname, void** params) {
+        //     if (GLAD_GL_VERSION_4_5)
+        //         glGetNamedBufferPointerv(m_id, pname, params);
+        //     else {
+        //         bind();
+        //         glGetBufferPointerv(m_target, pname, params);
+        //     }
+        // }
 
         void label(const char* name) {
             if (GLAD_GL_VERSION_4_3 || GLAD_GL_KHR_debug)
                 glObjectLabel(GL_BUFFER, m_id, -1, name);
         }
+        
+        GLsizeiptr size() const { return m_size; }
+        GLenum target() const { return m_target; }
 
     private:
         GLuint m_id{0};

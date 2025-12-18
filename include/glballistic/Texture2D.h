@@ -1,6 +1,6 @@
 #pragma once
-#include <glballistic/State.h>
 #include <glad/glad.h>
+#include <glballistic/State.h>
 
 namespace gl {
 
@@ -47,18 +47,13 @@ namespace gl {
             glDeleteTextures(1, &m_id);
             m_id = 0;
         }
+        
+        bool valid() const { return m_id != 0 && glIsTexture(m_id); }
+        GLuint get() const { return m_id; }
 
-        void bind(GLuint unit = 0) const {
-            State::bindTexture(unit, GL_TEXTURE_2D, m_id);
-        }
-
-        void bindImage(GLuint unit, GLenum access = GL_READ_WRITE, GLint level = 0) const {
-            glBindImageTexture(unit, m_id, level, GL_FALSE, 0, access, m_internalFormat);
-        }
-
-        void unbind(GLuint unit = 0) const {
-            State::bindTexture(unit, GL_TEXTURE_2D, 0);
-        }
+        void bind(GLuint unit = 0) const { State::bindTexture(unit, GL_TEXTURE_2D, m_id); }
+        void unbind(GLuint unit = 0) const { State::bindTexture(unit, GL_TEXTURE_2D, 0); }
+        void bindImage(GLuint unit, GLenum access = GL_READ_WRITE, GLint level = 0) const { glBindImageTexture(unit, m_id, level, GL_FALSE, 0, access, m_internalFormat); }
 
         void setData(const void* data) const {
             if (GLAD_GL_VERSION_4_5) {
@@ -98,7 +93,11 @@ namespace gl {
             }
         }
 
-        GLuint id() const { return m_id; }
+        void label(const char* name) {
+            if (GLAD_GL_VERSION_4_3 || GLAD_GL_KHR_debug)
+                glObjectLabel(GL_TEXTURE, m_id, -1, name);
+        }
+
         GLsizei width() const { return m_width; }
         GLsizei height() const { return m_height; }
 

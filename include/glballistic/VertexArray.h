@@ -1,6 +1,6 @@
 #pragma once
-#include <glballistic/State.h>
 #include <glad/glad.h>
+#include <glballistic/State.h>
 #include <utility>
 #include <vector>
 
@@ -38,7 +38,7 @@ namespace gl {
             m_id = 0;
         }
 
-        bool isValid() const { return m_id != 0 && glIsVertexArray(m_id); }
+        bool valid() const { return m_id != 0 && glIsVertexArray(m_id); }
         GLuint get() const { return m_id; }
 
         void bind() const { State::bindVertexArray(m_id); }

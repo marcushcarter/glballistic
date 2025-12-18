@@ -47,7 +47,6 @@ namespace gl {
             if (boundShader != id) {
                 glUseProgram(id);
                 boundShader = id;
-                boundShader = 0;
             }
         }
 
@@ -75,6 +74,37 @@ namespace gl {
             }
         }
 
+        static void bindRenderbuffer(GLuint id) {
+            if (boundRenderbuffer != id) {
+                glBindRenderbuffer(GL_RENDERBUFFER, id);
+                boundRenderbuffer = id;
+            }
+        }
+
+        static void bindFramebuffer(GLuint id, GLenum target = GL_FRAMEBUFFER) {
+            GLuint* slot = nullptr;
+
+            switch (target) {
+                case GL_FRAMEBUFFER:
+                    slot = &boundFramebuffer;
+                    break;
+                case GL_DRAW_FRAMEBUFFER:
+                    slot = &boundDrawFramebuffer;
+                    break;
+                case GL_READ_FRAMEBUFFER:
+                    slot = &boundReadFramebuffer;
+                    break;
+                default:
+                    glBindFramebuffer(target, id);
+                    return;
+            }
+
+            if (*slot != id) {
+                glBindFramebuffer(target, id);
+                *slot = id;
+            }
+        }
+
         static void reset() {
             boundBuffers.clear();
             boundBases.clear();
@@ -83,6 +113,12 @@ namespace gl {
 
             boundVertexArray = 0;
             boundShader = 0;
+            boundRenderbuffer = 0;
+
+            boundFramebuffer = 0;
+            boundDrawFramebuffer = 0;
+            boundReadFramebuffer = 0;
+
             activeTexUnit = 0;
         }
     
@@ -92,6 +128,11 @@ namespace gl {
 
         static inline GLuint boundVertexArray = 0;
         static inline GLuint boundShader = 0;
+        static inline GLuint boundRenderbuffer = 0;
+
+        static inline GLuint boundFramebuffer = 0;
+        static inline GLuint boundDrawFramebuffer = 0;
+        static inline GLuint boundReadFramebuffer = 0;
 
         static inline GLuint activeTexUnit = 0;
         static inline std::unordered_map<std::pair<GLenum, GLuint>, GLuint, pair_hash> boundTextures;
