@@ -88,6 +88,15 @@ namespace gl {
             glFramebufferRenderbuffer(target, attachment, GL_RENDERBUFFER, m_id);
         }
 
+        void resize(GLsizei width, GLsizei height) {
+            if (!m_id) return;
+
+            if (m_samples > 0)
+                storageMultisample(m_samples, m_internalFormat, width, height);
+            else
+                storage(m_internalFormat, width, height);
+        }
+
         void label(const char* name) {
             if (GLAD_GL_VERSION_4_3 || GLAD_GL_KHR_debug)
                 glObjectLabel(GL_RENDERBUFFER, m_id, -1, name);

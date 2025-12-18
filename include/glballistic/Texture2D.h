@@ -93,6 +93,23 @@ namespace gl {
             }
         }
 
+        void resize(GLsizei width, GLsizei height) {
+            if (!m_id) return;
+
+            if (width == m_width && height == m_height)
+                return;
+
+            m_width = width;
+            m_height = height;
+
+            if (GLAD_GL_VERSION_4_5) {
+                glTextureStorage2D(m_id, m_levels, m_internalFormat, width, height);
+            } else {
+                bind();
+                glTexStorage2D(GL_TEXTURE_2D, m_levels, m_internalFormat, width, height);
+            }
+        }
+
         void label(const char* name) {
             if (GLAD_GL_VERSION_4_3 || GLAD_GL_KHR_debug)
                 glObjectLabel(GL_TEXTURE, m_id, -1, name);
